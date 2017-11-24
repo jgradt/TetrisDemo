@@ -6,14 +6,15 @@
         <div>Hello World!</div>
         <div id="content"></div>
         <script>
-            System.import('../dist/main.js')
-                .then((v) => {
-                    System.import('app');
-                },
-                (r) => {
-                    console.log('something went wrong with System.import');
-                    console.log(r);
-                });
+            // System.import('../dist/bundle.js')
+            //     .then((v) => {
+            //         System.import('app');
+            //     },
+            //     (r) => {
+            //         console.log('something went wrong with System.import');
+            //         console.log(r);
+            //     });
         </script> 
+        <script src="../dist/bundle.js"></script>
     </body>
 </html>

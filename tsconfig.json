@@ -1,13 +1,13 @@
 {
     "compilerOptions": {
-        "module": "system",
+        //"module": "system",
         "moduleResolution": "node",
         "target": "es5",
         "sourceMap": true,
         "noImplicitAny": true,
         "removeComments": true,
-        "preserveConstEnums": true,
-        "outFile": "dist/main.js",       
+        //"preserveConstEnums": true,
+        //"outFile": "dist/main.js",       
         "lib": [ "es6", "dom" ]
     },
     "include": [
