@@ -958,6 +958,7 @@ __webpack_require__(18);
 __webpack_require__(21);
 __webpack_require__(24);
 var square_1 = __webpack_require__(27);
+var gamepiece_1 = __webpack_require__(28);
 var App = (function () {
     function App() {
     }
@@ -979,12 +980,21 @@ var App = (function () {
                 gameboard[row][col] = 0;
             }
         }
+        var piece = new gamepiece_1.GamePieceT(5, 5);
+        var pieceCoordinates = piece.getAbsoluteCoordinates();
+        console.log("game piece coordinates: " + pieceCoordinates);
+        for (var _i = 0, pieceCoordinates_1 = pieceCoordinates; _i < pieceCoordinates_1.length; _i++) {
+            var c = pieceCoordinates_1[_i];
+            gameboard[c[0]][c[1]] = 1;
+        }
         for (var row = 0; row <= config.rowCount - 1; row++) {
             for (var col = 0; col <= config.colCount - 1; col++) {
-                var clientX = row * config.pieceSize;
-                var clientY = col * config.pieceSize;
-                var sq = new square_1.Square(renderContext, clientX, clientY, config.pieceSize, config.padding, 'blue');
-                sq.render();
+                if (gameboard[row][col] === 1) {
+                    var clientX = row * config.pieceSize;
+                    var clientY = col * config.pieceSize;
+                    var sq = new square_1.Square(renderContext, clientX, clientY, config.pieceSize, config.padding, 'blue');
+                    sq.render();
+                }
             }
         }
         var output = document.getElementById("output");
@@ -1788,6 +1798,97 @@ var Square = (function () {
     return Square;
 }());
 exports.Square = Square;
+
+
+/***/ }),
+/* 28 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var GamePiece = (function () {
+    function GamePiece(coorindates, originX, originY) {
+        this.coorindates = coorindates;
+        this.originX = originX;
+        this.originY = originY;
+    }
+    GamePiece.prototype.getAbsoluteCoordinates = function () {
+        var absCoordinates = [];
+        for (var i in this.coorindates) {
+            absCoordinates[i] = [this.originX - this.coorindates[i][0], this.originX - this.coorindates[i][1]];
+        }
+        return absCoordinates;
+    };
+    return GamePiece;
+}());
+exports.GamePiece = GamePiece;
+var GamePieceT = (function (_super) {
+    __extends(GamePieceT, _super);
+    function GamePieceT(originX, originY) {
+        return _super.call(this, [[0, 0], [1, 0], [1, 1], [2, 0]], originX, originY) || this;
+    }
+    return GamePieceT;
+}(GamePiece));
+exports.GamePieceT = GamePieceT;
+var GamePieceSquare = (function (_super) {
+    __extends(GamePieceSquare, _super);
+    function GamePieceSquare(originX, originY) {
+        return _super.call(this, [[0, 0], [0, 1], [1, 0], [1, 1]], originX, originY) || this;
+    }
+    return GamePieceSquare;
+}(GamePiece));
+exports.GamePieceSquare = GamePieceSquare;
+var GamePieceStick = (function (_super) {
+    __extends(GamePieceStick, _super);
+    function GamePieceStick(originX, originY) {
+        return _super.call(this, [[0, 0], [0, 1], [0, 2], [0, 3]], originX, originY) || this;
+    }
+    return GamePieceStick;
+}(GamePiece));
+exports.GamePieceStick = GamePieceStick;
+var GamePieceLLeft = (function (_super) {
+    __extends(GamePieceLLeft, _super);
+    function GamePieceLLeft(originX, originY) {
+        return _super.call(this, [[0, 0], [1, 0], [1, 1], [1, 2]], originX, originY) || this;
+    }
+    return GamePieceLLeft;
+}(GamePiece));
+exports.GamePieceLLeft = GamePieceLLeft;
+var GamePieceLRight = (function (_super) {
+    __extends(GamePieceLRight, _super);
+    function GamePieceLRight(originX, originY) {
+        return _super.call(this, [[0, 0], [0, 1], [0, 2], [1, 0]], originX, originY) || this;
+    }
+    return GamePieceLRight;
+}(GamePiece));
+exports.GamePieceLRight = GamePieceLRight;
+var GamePieceDogLeft = (function (_super) {
+    __extends(GamePieceDogLeft, _super);
+    function GamePieceDogLeft(originX, originY) {
+        return _super.call(this, [[0, 1], [1, 0], [1, 1], [2, 0]], originX, originY) || this;
+    }
+    return GamePieceDogLeft;
+}(GamePiece));
+exports.GamePieceDogLeft = GamePieceDogLeft;
+var GamePieceDogRight = (function (_super) {
+    __extends(GamePieceDogRight, _super);
+    function GamePieceDogRight(originX, originY) {
+        return _super.call(this, [[0, 0], [1, 0], [1, 2], [2, 1]], originX, originY) || this;
+    }
+    return GamePieceDogRight;
+}(GamePiece));
+exports.GamePieceDogRight = GamePieceDogRight;
 
 
 /***/ })

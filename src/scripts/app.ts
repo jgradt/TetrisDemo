@@ -4,6 +4,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 
 import { Square } from './square'
+import { GamePieceT } from './gamepiece'
 
 export class App {
 
@@ -31,14 +32,23 @@ export class App {
             }
         }
 
+        // apply gamepiece
+        let piece = new GamePieceT(5,5);
+        let pieceCoordinates = piece.getAbsoluteCoordinates();
+        console.log(`game piece coordinates: ${pieceCoordinates}`);
+        for(let c of pieceCoordinates){
+            gameboard[c[0]][c[1]] = 1;
+        }
+
         // render gameboard
         for(let row=0;row<=config.rowCount-1;row++) {
             for(let col=0;col<=config.colCount-1;col++) {
-                //gameboard[row][col]=0;
-                let clientX = row * config.pieceSize;
-                let clientY = col * config.pieceSize;
-                let sq = new Square(renderContext, clientX, clientY, config.pieceSize, config.padding, 'blue');
-                sq.render();
+                if(gameboard[row][col]===1){
+                    let clientX = row * config.pieceSize;
+                    let clientY = col * config.pieceSize;
+                    let sq = new Square(renderContext, clientX, clientY, config.pieceSize, config.padding, 'blue');
+                    sq.render();
+                }
             }
         }
 
