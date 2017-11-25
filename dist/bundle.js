@@ -964,14 +964,33 @@ var App = (function () {
     App.main = function () {
         console.log("app main");
         var content = document.getElementById("content");
-        var gameboard = document.getElementById("gameboard");
-        var renderContext = gameboard.getContext("2d");
-        var s0 = new square_1.Square(renderContext, 20, 20, 30, 'blue');
-        s0.render();
+        var gamecanvas = document.getElementById("gamecanvas");
+        var renderContext = gamecanvas.getContext("2d");
+        var config = {
+            rowCount: 10,
+            colCount: 10,
+            pieceSize: 20,
+            padding: 1
+        };
+        var gameboard = [];
+        for (var row = 0; row <= config.rowCount - 1; row++) {
+            gameboard[row] = [];
+            for (var col = 0; col <= config.colCount - 1; col++) {
+                gameboard[row][col] = 0;
+            }
+        }
+        for (var row = 0; row <= config.rowCount - 1; row++) {
+            for (var col = 0; col <= config.colCount - 1; col++) {
+                var clientX = row * config.pieceSize;
+                var clientY = col * config.pieceSize;
+                var sq = new square_1.Square(renderContext, clientX, clientY, config.pieceSize, config.padding, 'blue');
+                sq.render();
+            }
+        }
         var output = document.getElementById("output");
         Observable_1.Observable.fromEvent(document, 'keydown')
-            .map(function (event) { return { key: event.key, keyCode: event.keyCode, char: event.char }; })
-            .subscribe(function (val) { return output.innerHTML = JSON.stringify(val, null, '\t'); });
+            .map(function (event) { return { key: event.key, keyCode: event.keyCode }; })
+            .subscribe(function (val) { return output.innerHTML = JSON.stringify(val, null, '  '); });
     };
     return App;
 }());
@@ -1750,8 +1769,10 @@ var DoSubscriber = (function (_super) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var Square = (function () {
-    function Square(renderContext, clientX, clientY, size, color) {
+    function Square(renderContext, clientX, clientY, size, padding, color) {
+        if (padding === void 0) { padding = 0; }
         this.renderContext = renderContext;
+        this.padding = padding;
         this.clientX = clientX;
         this.clientY = clientY;
         this.size = size;
@@ -1759,7 +1780,7 @@ var Square = (function () {
     }
     Square.prototype.render = function () {
         this.renderContext.beginPath();
-        this.renderContext.rect(this.clientX, this.clientY, this.size, this.size);
+        this.renderContext.rect(this.clientX + this.padding, this.clientY + this.padding, this.size - (2 * this.padding), this.size - (2 * this.padding));
         this.renderContext.fillStyle = this.color;
         this.renderContext.fill();
         this.renderContext.closePath();

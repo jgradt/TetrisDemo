@@ -13,18 +13,41 @@ export class App {
         
         // setup
         const content = document.getElementById("content");
-        var gameboard: HTMLCanvasElement = document.getElementById("gameboard") as HTMLCanvasElement;
-        var renderContext: CanvasRenderingContext2D = gameboard.getContext("2d") as CanvasRenderingContext2D;
+        var gamecanvas: HTMLCanvasElement = document.getElementById("gamecanvas") as HTMLCanvasElement;
+        var renderContext: CanvasRenderingContext2D = gamecanvas.getContext("2d") as CanvasRenderingContext2D;
+        const config = {
+            rowCount: 10,
+            colCount: 10,
+            pieceSize: 20,
+            padding: 1
+        };
 
-        let s0 = new Square(renderContext, 20, 20, 30, 'blue');
-        s0.render();
+        // initialize gameboard
+        const gameboard: number[][] = [];
+        for(let row=0;row<=config.rowCount-1;row++) {
+            gameboard[row] = [];
+            for(let col=0;col<=config.colCount-1;col++) {
+                gameboard[row][col]=0;
+            }
+        }
+
+        // render gameboard
+        for(let row=0;row<=config.rowCount-1;row++) {
+            for(let col=0;col<=config.colCount-1;col++) {
+                //gameboard[row][col]=0;
+                let clientX = row * config.pieceSize;
+                let clientY = col * config.pieceSize;
+                let sq = new Square(renderContext, clientX, clientY, config.pieceSize, config.padding, 'blue');
+                sq.render();
+            }
+        }
 
         // observer keypresses
         const output = document.getElementById("output");      
         Observable.fromEvent(document, 'keydown')
                     //.do(event => console.log(event))
-                    .map((event: KeyboardEvent) => { return { key: event.key, keyCode: event.keyCode, char: event.char }; })
-                    .subscribe(val=> output.innerHTML = JSON.stringify(val, null, '\t') );
+                    .map((event: KeyboardEvent) => { return { key: event.key, keyCode: event.keyCode }; })
+                    .subscribe(val=> output.innerHTML = JSON.stringify(val, null, '  ') );
 
     }
     
