@@ -1,11 +1,15 @@
 <html>
     <head>
+        <style>
+            * { padding: 0; margin: 0; }
+            canvas { background: black; display: block; margin: 0 auto; }
+        </style>
     </head>
     <body>
-        <div>Hello World!</div>
-        <div id="content"></div>
+        <canvas id="gameboard" width="480" height="320"></canvas>
+        <!-- <div id="content"></div> -->
         <div>
-            <pre id="code"></pre>
+            <pre id="output"></pre>
         </div>        
         <script src="../dist/bundle.js"></script>
     </body>

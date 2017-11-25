@@ -957,16 +957,21 @@ var Observable_1 = __webpack_require__(0);
 __webpack_require__(18);
 __webpack_require__(21);
 __webpack_require__(24);
+var square_1 = __webpack_require__(27);
 var App = (function () {
     function App() {
     }
     App.main = function () {
         console.log("app main");
         var content = document.getElementById("content");
-        var code = document.getElementById("code");
+        var gameboard = document.getElementById("gameboard");
+        var renderContext = gameboard.getContext("2d");
+        var s0 = new square_1.Square(renderContext, 20, 20, 30, 'blue');
+        s0.render();
+        var output = document.getElementById("output");
         Observable_1.Observable.fromEvent(document, 'keydown')
             .map(function (event) { return { key: event.key, keyCode: event.keyCode, char: event.char }; })
-            .subscribe(function (val) { return code.innerHTML = JSON.stringify(val); });
+            .subscribe(function (val) { return output.innerHTML = JSON.stringify(val, null, '\t'); });
     };
     return App;
 }());
@@ -1736,6 +1741,33 @@ var DoSubscriber = (function (_super) {
     return DoSubscriber;
 }(Subscriber_1.Subscriber));
 //# sourceMappingURL=tap.js.map
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Square = (function () {
+    function Square(renderContext, clientX, clientY, size, color) {
+        this.renderContext = renderContext;
+        this.clientX = clientX;
+        this.clientY = clientY;
+        this.size = size;
+        this.color = color;
+    }
+    Square.prototype.render = function () {
+        this.renderContext.beginPath();
+        this.renderContext.rect(this.clientX, this.clientY, this.size, this.size);
+        this.renderContext.fillStyle = this.color;
+        this.renderContext.fill();
+        this.renderContext.closePath();
+    };
+    return Square;
+}());
+exports.Square = Square;
+
 
 /***/ })
 /******/ ]);

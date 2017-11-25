@@ -7,6 +7,9 @@ module.exports = {
         filename: "bundle.js"
     },
     devtool: 'source-map',
+    resolve: {
+        extensions: ['.ts', '.js', '.json']
+    },
     module: {
         loaders: [{
                 test: /\.tsx?$/,
