@@ -1,18 +1,15 @@
 {
     "compilerOptions": {
-        //"module": "system",
         "moduleResolution": "node",
         "target": "es5",
         "sourceMap": true,
         "noImplicitAny": true,
         "removeComments": true,
-        //"preserveConstEnums": true,
-        //"outFile": "dist/main.js",       
+        "preserveConstEnums": true,
         "lib": [ "es6", "dom" ]
     },
     "include": [
         "src/scripts/**/*"
-        //"src/node_modules/rxjs/**/*"
     ],
     "exclude": [
         "node_modules",
