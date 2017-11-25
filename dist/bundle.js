@@ -957,50 +957,39 @@ var Observable_1 = __webpack_require__(0);
 __webpack_require__(18);
 __webpack_require__(21);
 __webpack_require__(24);
-var square_1 = __webpack_require__(27);
-var gamepiece_1 = __webpack_require__(28);
+var gameboard_1 = __webpack_require__(27);
 var App = (function () {
     function App() {
     }
     App.main = function () {
         console.log("app main");
-        var content = document.getElementById("content");
-        var gamecanvas = document.getElementById("gamecanvas");
-        var renderContext = gamecanvas.getContext("2d");
         var config = {
             rowCount: 10,
             colCount: 10,
             pieceSize: 20,
             padding: 1
         };
-        var gameboard = [];
-        for (var row = 0; row <= config.rowCount - 1; row++) {
-            gameboard[row] = [];
-            for (var col = 0; col <= config.colCount - 1; col++) {
-                gameboard[row][col] = 0;
-            }
-        }
-        var piece = new gamepiece_1.GamePieceT(5, 5);
-        var pieceCoordinates = piece.getAbsoluteCoordinates();
-        console.log("game piece coordinates: " + pieceCoordinates);
-        for (var _i = 0, pieceCoordinates_1 = pieceCoordinates; _i < pieceCoordinates_1.length; _i++) {
-            var c = pieceCoordinates_1[_i];
-            gameboard[c[0]][c[1]] = 1;
-        }
-        for (var row = 0; row <= config.rowCount - 1; row++) {
-            for (var col = 0; col <= config.colCount - 1; col++) {
-                if (gameboard[row][col] === 1) {
-                    var clientX = row * config.pieceSize;
-                    var clientY = col * config.pieceSize;
-                    var sq = new square_1.Square(renderContext, clientX, clientY, config.pieceSize, config.padding, 'blue');
-                    sq.render();
-                }
-            }
-        }
+        var content = document.getElementById("content");
+        var gamecanvas = document.getElementById("gamecanvas");
+        var renderContext = gamecanvas.getContext("2d");
+        var gameboard = new gameboard_1.Gameboard(renderContext, config.rowCount, config.colCount, config.pieceSize, config.padding);
+        gameboard.render();
         var output = document.getElementById("output");
         Observable_1.Observable.fromEvent(document, 'keydown')
             .map(function (event) { return { key: event.key, keyCode: event.keyCode }; })
-            .subscribe(function (val) { return output.innerHTML = JSON.stringify(val, null, '  '); });
+            .subscribe(function (val) {
+            output.innerHTML = JSON.stringify(val, null, '  ');
+            switch (val.key) {
+                case 'ArrowLeft':
+                    gameboard.moveLeft();
+                    gameboard.render();
+                    break;
+                case 'ArrowRight':
+                    gameboard.moveRight();
+                    gameboard.render();
+                    break;
+            }
+        });
     };
     return App;
 }());
@@ -1778,26 +1767,72 @@ var DoSubscriber = (function (_super) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var Square = (function () {
-    function Square(renderContext, clientX, clientY, size, padding, color) {
-        if (padding === void 0) { padding = 0; }
+var gamepiece_1 = __webpack_require__(28);
+var square_1 = __webpack_require__(29);
+var Gameboard = (function () {
+    function Gameboard(renderContext, rowCount, columnCount, pieceSize, piecePadding) {
+        if (piecePadding === void 0) { piecePadding = 0; }
         this.renderContext = renderContext;
-        this.padding = padding;
-        this.clientX = clientX;
-        this.clientY = clientY;
-        this.size = size;
-        this.color = color;
+        this.pieceSize = pieceSize;
+        this.piecePadding = piecePadding;
+        this.gameboard = [];
+        this.rowCount = rowCount;
+        this.columnCount = columnCount;
+        this.init();
     }
-    Square.prototype.render = function () {
-        this.renderContext.beginPath();
-        this.renderContext.rect(this.clientX + this.padding, this.clientY + this.padding, this.size - (2 * this.padding), this.size - (2 * this.padding));
-        this.renderContext.fillStyle = this.color;
-        this.renderContext.fill();
-        this.renderContext.closePath();
+    Gameboard.prototype.init = function () {
+        for (var row = 0; row <= this.rowCount - 1; row++) {
+            this.gameboard[row] = [];
+            for (var col = 0; col <= this.columnCount - 1; col++) {
+                this.gameboard[row][col] = { value: 0 };
+            }
+        }
+        this.currentPiece = new gamepiece_1.GamePieceT(5, 5, 1);
+        this.applyGamePiece(this.currentPiece);
     };
-    return Square;
+    Gameboard.prototype.clearGamePiece = function (gamepiece) {
+        this.applyGamePieceCoordinates(gamepiece.getAbsoluteCoordinates(), 0);
+    };
+    Gameboard.prototype.applyGamePiece = function (gamepiece) {
+        this.applyGamePieceCoordinates(gamepiece.getAbsoluteCoordinates(), gamepiece.style);
+    };
+    Gameboard.prototype.applyGamePieceCoordinates = function (coordinates, style) {
+        console.log("applying game piece coordinates: " + coordinates + " with style " + style);
+        for (var _i = 0, coordinates_1 = coordinates; _i < coordinates_1.length; _i++) {
+            var c = coordinates_1[_i];
+            this.gameboard[c[0]][c[1]].value = style;
+        }
+    };
+    Gameboard.prototype.moveLeft = function () {
+        var newPiece = this.currentPiece.moveLeft();
+        this.clearGamePiece(this.currentPiece);
+        this.applyGamePiece(newPiece);
+        this.currentPiece = newPiece;
+    };
+    Gameboard.prototype.moveRight = function () {
+        var newPiece = this.currentPiece.moveRight();
+        this.clearGamePiece(this.currentPiece);
+        this.applyGamePiece(newPiece);
+        this.currentPiece = newPiece;
+    };
+    Gameboard.prototype.render = function () {
+        console.log('rendering gameboard');
+        this.renderContext.clearRect(0, 0, this.columnCount * this.pieceSize, this.rowCount * this.pieceSize);
+        for (var row = 0; row <= this.rowCount - 1; row++) {
+            for (var col = 0; col <= this.columnCount - 1; col++) {
+                var style = this.gameboard[row][col].value;
+                if (style !== 0) {
+                    var clientX = row * this.pieceSize;
+                    var clientY = col * this.pieceSize;
+                    var sq = new square_1.Square(this.renderContext, clientX, clientY, this.pieceSize, this.piecePadding, style);
+                    sq.render();
+                }
+            }
+        }
+    };
+    return Gameboard;
 }());
-exports.Square = Square;
+exports.Gameboard = Gameboard;
 
 
 /***/ }),
@@ -1818,77 +1853,130 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var GamePiece = (function () {
-    function GamePiece(coorindates, originX, originY) {
+    function GamePiece(coorindates, originX, originY, style) {
         this.coorindates = coorindates;
         this.originX = originX;
         this.originY = originY;
+        this.style = style;
     }
+    GamePiece.prototype.getCoordinates = function () {
+        return this.coorindates;
+    };
     GamePiece.prototype.getAbsoluteCoordinates = function () {
         var absCoordinates = [];
         for (var i in this.coorindates) {
-            absCoordinates[i] = [this.originX - this.coorindates[i][0], this.originX - this.coorindates[i][1]];
+            absCoordinates[i] = [this.originX - this.coorindates[i][0], this.originY - this.coorindates[i][1]];
         }
         return absCoordinates;
+    };
+    GamePiece.prototype.moveLeft = function () {
+        return new GamePiece(this.getCoordinates(), this.originX - 1, this.originY, this.style);
+    };
+    GamePiece.prototype.moveRight = function () {
+        return new GamePiece(this.getCoordinates(), this.originX + 1, this.originY, this.style);
     };
     return GamePiece;
 }());
 exports.GamePiece = GamePiece;
 var GamePieceT = (function (_super) {
     __extends(GamePieceT, _super);
-    function GamePieceT(originX, originY) {
-        return _super.call(this, [[0, 0], [1, 0], [1, 1], [2, 0]], originX, originY) || this;
+    function GamePieceT(originX, originY, style) {
+        return _super.call(this, [[0, 0], [1, 0], [1, 1], [2, 0]], originX, originY, style) || this;
     }
     return GamePieceT;
 }(GamePiece));
 exports.GamePieceT = GamePieceT;
 var GamePieceSquare = (function (_super) {
     __extends(GamePieceSquare, _super);
-    function GamePieceSquare(originX, originY) {
-        return _super.call(this, [[0, 0], [0, 1], [1, 0], [1, 1]], originX, originY) || this;
+    function GamePieceSquare(originX, originY, style) {
+        return _super.call(this, [[0, 0], [0, 1], [1, 0], [1, 1]], originX, originY, style) || this;
     }
     return GamePieceSquare;
 }(GamePiece));
 exports.GamePieceSquare = GamePieceSquare;
 var GamePieceStick = (function (_super) {
     __extends(GamePieceStick, _super);
-    function GamePieceStick(originX, originY) {
-        return _super.call(this, [[0, 0], [0, 1], [0, 2], [0, 3]], originX, originY) || this;
+    function GamePieceStick(originX, originY, style) {
+        return _super.call(this, [[0, 0], [0, 1], [0, 2], [0, 3]], originX, originY, style) || this;
     }
     return GamePieceStick;
 }(GamePiece));
 exports.GamePieceStick = GamePieceStick;
 var GamePieceLLeft = (function (_super) {
     __extends(GamePieceLLeft, _super);
-    function GamePieceLLeft(originX, originY) {
-        return _super.call(this, [[0, 0], [1, 0], [1, 1], [1, 2]], originX, originY) || this;
+    function GamePieceLLeft(originX, originY, style) {
+        return _super.call(this, [[0, 0], [1, 0], [1, 1], [1, 2]], originX, originY, style) || this;
     }
     return GamePieceLLeft;
 }(GamePiece));
 exports.GamePieceLLeft = GamePieceLLeft;
 var GamePieceLRight = (function (_super) {
     __extends(GamePieceLRight, _super);
-    function GamePieceLRight(originX, originY) {
-        return _super.call(this, [[0, 0], [0, 1], [0, 2], [1, 0]], originX, originY) || this;
+    function GamePieceLRight(originX, originY, style) {
+        return _super.call(this, [[0, 0], [0, 1], [0, 2], [1, 0]], originX, originY, style) || this;
     }
     return GamePieceLRight;
 }(GamePiece));
 exports.GamePieceLRight = GamePieceLRight;
 var GamePieceDogLeft = (function (_super) {
     __extends(GamePieceDogLeft, _super);
-    function GamePieceDogLeft(originX, originY) {
-        return _super.call(this, [[0, 1], [1, 0], [1, 1], [2, 0]], originX, originY) || this;
+    function GamePieceDogLeft(originX, originY, style) {
+        return _super.call(this, [[0, 1], [1, 0], [1, 1], [2, 0]], originX, originY, style) || this;
     }
     return GamePieceDogLeft;
 }(GamePiece));
 exports.GamePieceDogLeft = GamePieceDogLeft;
 var GamePieceDogRight = (function (_super) {
     __extends(GamePieceDogRight, _super);
-    function GamePieceDogRight(originX, originY) {
-        return _super.call(this, [[0, 0], [1, 0], [1, 2], [2, 1]], originX, originY) || this;
+    function GamePieceDogRight(originX, originY, style) {
+        return _super.call(this, [[0, 0], [1, 0], [1, 2], [2, 1]], originX, originY, style) || this;
     }
     return GamePieceDogRight;
 }(GamePiece));
 exports.GamePieceDogRight = GamePieceDogRight;
+
+
+/***/ }),
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Square = (function () {
+    function Square(renderContext, clientX, clientY, size, padding, style) {
+        if (padding === void 0) { padding = 0; }
+        this.renderContext = renderContext;
+        this.padding = padding;
+        this.clientX = clientX;
+        this.clientY = clientY;
+        this.size = size;
+        this.style = style;
+    }
+    Square.prototype.render = function () {
+        this.renderContext.beginPath();
+        this.renderContext.rect(this.clientX + this.padding, this.clientY + this.padding, this.size - (2 * this.padding), this.size - (2 * this.padding));
+        this.renderContext.fillStyle = this.getFillColor(this.style);
+        this.renderContext.fill();
+        this.renderContext.closePath();
+    };
+    Square.prototype.getFillColor = function (style) {
+        switch (style) {
+            case 0:
+                return 'black';
+            case 1:
+                return 'blue';
+            case 2:
+                return 'red';
+            case 3:
+                return 'yellow';
+            default:
+                return 'black';
+        }
+    };
+    return Square;
+}());
+exports.Square = Square;
 
 
 /***/ })
