@@ -8,9 +8,9 @@ module.exports = {
     },
     module: {
         loaders: [{
-                test: /\.js$/,
+                test: /\.tsx?$/,
                 exclude: /node_modules/,
-                loader: 'typescript'
+                loader: 'awesome-typescript-loader'
             }          
         ]
     }

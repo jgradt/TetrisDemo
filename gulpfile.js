@@ -44,7 +44,7 @@ gulp.task("build-dev", ["webpack:build-dev"], function() {
 
 // modify some webpack config options
 var myDevConfig = Object.create(webpackConfig);
-myDevConfig.devtool = "eval-source-map";
+myDevConfig.devtool = "source-map";
 //myDevConfig.debug = true;
 
 // create a single instance of the compiler to allow caching
@@ -64,7 +64,7 @@ gulp.task("webpack:build-dev", function(callback) {
 gulp.task("webpack-dev-server", function(callback) {
 	// modify some webpack config options
 	var myConfig = Object.create(webpackConfig);
-	myConfig.devtool = "eval-source-map";
+	myConfig.devtool = "source-map";
 
 	// Start a webpack-dev-server
 	new WebpackDevServer(webpack(myConfig), {
