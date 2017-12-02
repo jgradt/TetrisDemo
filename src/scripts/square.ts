@@ -22,6 +22,7 @@ export class Square {
         this.renderContext.closePath();
     }
 
+    //TODO: need enum for color
     private getFillColor(style: number) : string {
         switch(style) {
             case 0:

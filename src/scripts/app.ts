@@ -3,7 +3,6 @@ import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 
-import { GamePieceT } from './gamepiece'
 import { Gameboard } from './gameboard';
 
 export class App {
@@ -13,8 +12,8 @@ export class App {
         console.log("app main");
         
         const config = {
-            rowCount: 10,
-            colCount: 10,
+            rowCount: 20,
+            colCount: 12,
             pieceSize: 20,
             padding: 1
         };
@@ -22,6 +21,8 @@ export class App {
         // setup
         const content = document.getElementById("content");
         const gamecanvas: HTMLCanvasElement = document.getElementById("gamecanvas") as HTMLCanvasElement;
+        gamecanvas.width = config.colCount * config.pieceSize;
+        gamecanvas.height = config.rowCount * config.pieceSize;
         const renderContext: CanvasRenderingContext2D = gamecanvas.getContext("2d") as CanvasRenderingContext2D;
 
         // initialize gameboard
@@ -38,6 +39,7 @@ export class App {
                         switch(val.key) {
 
                             case 'ArrowLeft':
+                                //TODO: need error logic
                                 gameboard.moveLeft();
                                 gameboard.render();
                                 break;
