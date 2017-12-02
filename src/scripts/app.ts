@@ -2,6 +2,7 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
+import { Observer } from 'rxjs/Observer';
 
 import { Gameboard } from './gameboard';
 
@@ -30,38 +31,81 @@ export class App {
         gameboard.render();
 
         // observe keypresses
-        const output = document.getElementById("output");      
         Observable.fromEvent(document, 'keydown')
-                    //.do(event => console.log(event))                    
-                    .map((event: KeyboardEvent) => { return { key: event.key, keyCode: event.keyCode }; })
-                    .do(val => output.innerHTML = JSON.stringify(val, null, '  '))
-                    .subscribe(val=> {
-                        switch(val.key) {
-
-                            case 'ArrowLeft':
-                                //TODO: need error logic
-                                gameboard.moveLeft();
-                                gameboard.render();
-                                break;
-
-                            case 'ArrowRight':
-                                gameboard.moveRight();
-                                gameboard.render();
-                                break;
-
-                            case 'ArrowDown':
-                                gameboard.moveDown();
-                                gameboard.render();
-                                break;
-
-                            case 'ArrowUp':
-                                gameboard.turn();
-                                gameboard.render();
-                                break;
-                        }
-                    });
+                    //.do((event: KeyboardEvent) => console.log("keydown", event.keyCode, event.key))       
+                    .map(mapKeyBoardToAction)             
+                    //.do(action => console.log("game action", action))
+                    .subscribe(new GameObserver(gameboard));
 
     }
+    
+}
+
+enum GameAction {
+    Turn,
+    Down,
+    Right,
+    Left,
+    Pause,
+    Unknown
+}
+
+function mapKeyBoardToAction(event: KeyboardEvent) : GameAction {
+    switch(event.keyCode) {
+        case 37:
+            return GameAction.Left;
+        case 32:
+        case 38:
+            return GameAction.Turn;
+        case 39:
+            return GameAction.Right;
+        case 40:
+            return GameAction.Down;
+        case 80:
+            return GameAction.Pause;
+        default:
+            //return Observable.of(GameAction.Down); 
+            return GameAction.Unknown;
+    }
+}
+
+class GameObserver implements Observer<GameAction> {
+    
+    constructor(private gameboard: Gameboard) {}
+    
+    //closed?: boolean;
+    
+    next(value: GameAction) : void {
+        switch(value) {
+
+            case GameAction.Left:
+                //TODO: need error logic
+                this.gameboard.moveLeft();
+                this.gameboard.render();
+                break;
+
+            case GameAction.Right:
+                this.gameboard.moveRight();
+                this.gameboard.render();
+                break;
+
+            case GameAction.Down:
+                this.gameboard.moveDown();
+                this.gameboard.render();
+                break;
+
+            case GameAction.Turn:
+                this.gameboard.turn();
+                this.gameboard.render();
+                break;
+        }
+    }
+
+    error(err: any) : void {
+        console.error(err);
+    }
+
+    complete: () => void;
     
 }
 
