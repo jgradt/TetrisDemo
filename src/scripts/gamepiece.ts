@@ -1,7 +1,20 @@
 export interface ICoordinate {
-    x: number,
-    y: number
+    x: number;
+    y: number;
 };
+
+// utility function
+export function printCoordinate(coordinate: ICoordinate) : string {
+    return `(${coordinate.x}, ${coordinate.y})`;
+}
+
+// utility function
+export function printCoordinates(coordinates: ICoordinate[]) : string {
+    let val = '';
+    coordinates.forEach(c => val += printCoordinate(c) + ' ');
+    return val;
+
+}
 
 export class GamePiece {
 
@@ -38,6 +51,11 @@ export class GamePiece {
     moveDown(): GamePiece {
         return new GamePiece(this.getCoordinates(), this.originX, this.originY+1, this.style);
     }
+
+    turn(): GamePiece {
+        let newCoordinates = this.getCoordinates().map(c => { return {x: c.y * -1, y: c.x};});
+        return new GamePiece(newCoordinates, this.originX, this.originY, this.style);
+    }
 }
 
 export class GamePieceFactory {
@@ -46,21 +64,21 @@ export class GamePieceFactory {
     getPiece(id: number, originX: number, originY: number, style: number) : GamePiece {
         switch(id) {
             case 1: // GamePiece T
-                return new GamePiece([{x:0,y:0}, {x:1,y:0}, {x:1,y:1}, {x:2,y:0}], originX, originY, style);
+                return new GamePiece([{x:0,y:0}, {x:-1,y:0}, {x:0,y:1}, {x:1,y:0}], originX, originY, style);
             case 2: // GamePiece Square
                 return new GamePiece([{x:0,y:0}, {x:0,y:1}, {x:1,y:0}, {x:1,y:1}], originX, originY, style);
             case 3: // GamePiece Stick
-                return new GamePiece([{x:0,y:0}, {x:0,y:1}, {x:0,y:2}, {x:0,y:3}], originX, originY, style);
+                return new GamePiece([{x:0,y:0}, {x:0,y:-1}, {x:0,y:1}, {x:0,y:2}], originX, originY, style);
             case 4: // GamePiece L-Left
-                return new GamePiece([{x:0,y:0}, {x:1,y:0}, {x:1,y:1}, {x:1,y:2}], originX, originY, style);
+                return new GamePiece([{x:0,y:0}, {x:0,y:1}, {x:0,y:-1}, {x:-1,y:-1}], originX, originY, style);
             case 5: // GamePiece L-Right
-                return new GamePiece([{x:0,y:0}, {x:0,y:1}, {x:0,y:2}, {x:1,y:0}], originX, originY, style);
+                return new GamePiece([{x:0,y:0}, {x:0,y:1}, {x:0,y:-1}, {x:1,y:1}], originX, originY, style);
             case 6: // GamePiece DogLeft
-                return new GamePiece([{x:0,y:1}, {x:1,y:0}, {x:1,y:1}, {x:2,y:0}], originX, originY, style);
+                return new GamePiece([{x:0,y:0}, {x:0,y:1}, {x:1,y:0}, {x:1,y:-1}], originX, originY, style);
             case 7: // GamePiece DogRight
-                return new GamePiece([{x:0,y:0}, {x:1,y:0}, {x:1,y:2}, {x:2,y:1}], originX, originY, style);
-            default:
-                return new GamePiece([{x:0,y:0}, {x:1,y:0}, {x:1,y:1}, {x:2,y:0}], originX, originY, style);
+                return new GamePiece([{x:0,y:0}, {x:1,y:-1}, {x:1,y:0}, {x:1,y:1}], originX, originY, style);
+            // default:
+            //     return new GamePiece([{x:0,y:0}, {x:1,y:0}, {x:1,y:1}, {x:2,y:0}], originX, originY, style);
         }
     }
 }

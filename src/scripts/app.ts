@@ -48,6 +48,16 @@ export class App {
                                 gameboard.moveRight();
                                 gameboard.render();
                                 break;
+
+                            case 'ArrowDown':
+                                gameboard.moveDown();
+                                gameboard.render();
+                                break;
+
+                            case 'ArrowUp':
+                                gameboard.turn();
+                                gameboard.render();
+                                break;
                         }
                     });
 
