@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch localhost",
+            "name": "Launch localhost in Chrome",
             "type": "chrome",
             "request": "launch",
             "preLaunchTask": null,

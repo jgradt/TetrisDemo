@@ -77,3 +77,5 @@ gulp.task("webpack-dev-server", function(callback) {
 		gutil.log("[webpack-dev-server]", "http://localhost:8080/webpack-dev-server/index.html");
 	});
 });
+
+gulp.task("build-run-watch", ["build-dev", "webpack-dev-server"]);
