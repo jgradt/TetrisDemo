@@ -8,8 +8,10 @@ export interface IGameSquare {
 
 export class Gameboard {
 
+    completedLineCount: number = 0;
+    score: number = 0;
     private gameboard: IGameSquare[][] = [];
-    private currentPiece: GamePiece;
+    private currentPiece: GamePiece;    
     private readonly rowCount: number;
     private readonly columnCount: number;
     private readonly pieceFactory: GamePieceFactory = new GamePieceFactory();
@@ -80,10 +82,51 @@ export class Gameboard {
         return can;
     }
 
+    private getCompleteLines() : number[] {
+        //console.log('checking for completed lines');
+        let complete: number[] = [];
+        for(let row=0;row<=this.rowCount-1;row++) {
+            let rowCompleted = true;
+            for(let col=0;col<=this.columnCount-1;col++) {
+                if(!this.gameboard[col][row].locked) {
+                    rowCompleted = false;                    
+                }
+            }
+            if(rowCompleted) console.log(`row ${row} completed`);
+            if(rowCompleted) complete.push(row);
+        }
+        return complete;
+    }
+
+    private copyRow(sourceRowNo: number, destRowNo: number) : void {
+        for(let col=0;col<=this.columnCount-1;col++) {
+            this.gameboard[col][destRowNo].locked = this.gameboard[col][sourceRowNo].locked;
+            this.gameboard[col][destRowNo].style = this.gameboard[col][sourceRowNo].style;
+        }
+    }
+
+    private removeCompletedLines() : void {
+        let completedLines = this.getCompleteLines();
+        completedLines.sort();
+        completedLines.forEach(lineNo => {
+            for(let row=lineNo;row>=1;row--) {
+                this.copyRow(row-1,row);
+            }
+        })
+
+        this.updateScore(completedLines.length);
+    }
+
+    private updateScore(lineCount: number) {
+        //TODO
+        this.completedLineCount += lineCount;
+    }
+
     private tryApplyNewPiece(newPiece: GamePiece): boolean {
         if (this.canApplyGamePiece(newPiece)) {
             this.clearGamePiece(this.currentPiece);
             this.applyGamePiece(newPiece);
+            //this.removeCompletedLines();
             this.currentPiece = newPiece;
             return true;
         }
@@ -109,6 +152,7 @@ export class Gameboard {
         let newPiece = this.currentPiece.moveDown();
         if(!this.tryApplyNewPiece(newPiece)) {
             this.lockGamePiece(this.currentPiece);
+            this.removeCompletedLines();
             this.newPiece();
         }
     }
