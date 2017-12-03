@@ -3,8 +3,10 @@ import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 import { Observer } from 'rxjs/Observer';
+import { BehaviorSubject } from 'rxjs'
 
 import { Gameboard } from './gameboard';
+import { Subscription } from 'rxjs/Subscription';
 
 export class App {
 
@@ -15,7 +17,7 @@ export class App {
         let totalLines = 0,
             score = 0,
             level = 0,
-            speed = 1200;
+            speed = 2000;
 
         const config = {
             rowCount: 20,
@@ -33,6 +35,8 @@ export class App {
         const el_level = document.getElementById("level");
         const el_lineCount = document.getElementById("lineCount");        
         const el_message = document.getElementById("message");
+        const el_startButton = document.getElementById("btnStart") as HTMLButtonElement;
+        el_startButton.onclick = startGame;
 
         function setMessage(msg: string) {
             el_message.innerText = msg;
@@ -42,7 +46,9 @@ export class App {
             let previousLevel = level;
             totalLines += lineCount;
             level = Math.floor(totalLines / 10) + 1;
-            score += 100 * [1,3,8,20][lineCount-1];
+            let scoreIncrement = 100 * [1,3,8,20][lineCount-1] * (Math.pow(1.1, level-1));
+            scoreIncrement = Math.round(scoreIncrement/10) * 10;
+            score += scoreIncrement;
 
             if(previousLevel != level && speed > 300) {
                 if(level <= 5) {
@@ -64,24 +70,54 @@ export class App {
         gameboard.onLinesCompleted = linesCompleted;
         gameboard.render();
 
-        // observe keypresses
-        Observable.fromEvent(document, 'keydown')
+        // observe events
+        let keySource$ = Observable.fromEvent(document, 'keydown')
                     //.do((event: KeyboardEvent) => console.log("keydown", event.keyCode, event.key))       
-                    .map(mapKeyBoardToAction)             
+                    .map(mapKeyBoardToAction);            
                     //.do(action => console.log("game action", action))
-                    .subscribe(new GameObserver(gameboard, setMessage));
+                    //.subscribe(new GameObserver(gameboard, setMessage));
 
+        const subject$ = new BehaviorSubject(0);
+        let subKeySource = keySource$.subscribe(subject$);
+        let subscription : Subscription; 
+        let timer: number;
+
+        function startTimer() {
+            if(gameboard.isGameOver) {
+                quitGame();
+                return;
+            }
+            subject$.next(GameAction.Tick);
+            timer = setTimeout(startTimer, speed);
+        }
+        
+        function stopTimer() {
+            clearTimeout(timer);
+        }
+
+        function startGame() {
+            gameboard.newGame();
+            setMessage('');
+            subscription = subject$.subscribe(new GameObserver(gameboard, setMessage));
+            startTimer();
+        }
+
+        function quitGame() {
+            stopTimer();
+            subscription.unsubscribe();
+        }
     }
     
 }
 
 enum GameAction {
+    Unknown,
     Turn,
     Down,
     Right,
     Left,
     Pause,
-    Unknown
+    Tick
 }
 
 function mapKeyBoardToAction(event: KeyboardEvent) : GameAction {
@@ -139,6 +175,7 @@ class GameObserver implements Observer<GameAction> {
                 this.gameboard.render();
                 break;
 
+            case GameAction.Tick:
             case GameAction.Down:
                 this.gameboard.moveDown();
                 this.gameboard.render();

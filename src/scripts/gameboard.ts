@@ -17,27 +17,24 @@ export class Gameboard {
     private readonly pieceFactory: GamePieceFactory = new GamePieceFactory();
     private readonly config = {
         originX: 6,
-        originY: 3,
+        originY: 2,
         defaultStyle: 0
     };
 
     constructor(private renderContext: CanvasRenderingContext2D, rowCount: number, columnCount: number, private pieceSize: number, private piecePadding: number = 0) {
         this.rowCount = rowCount;
-        this.columnCount = columnCount;
-        
+        this.columnCount = columnCount;       
         this.init();
     }
 
     private init() {
-
         for(let col=0;col<=this.columnCount-1;col++) {
             this.gameboard[col] = [];
             for(let row=0;row<=this.rowCount-1;row++) {
                 this.gameboard[col][row]= { style: 0, locked: false };
             }
         }
-
-        this.newPiece();        
+        this.isGameOver = false;
     }
 
     private newPiece() : void {
@@ -130,6 +127,12 @@ export class Gameboard {
             return true;
         }
         return false;
+    }
+
+    newGame() {
+        this.init();
+        this.newPiece();
+        this.render();
     }
 
     moveLeft() {

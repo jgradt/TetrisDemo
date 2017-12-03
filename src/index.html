@@ -9,7 +9,7 @@
                 border-style: solid; 
                 border-color: white; 
                 }
-            /* body { color: white; font-family:Arial, Helvetica, sans-serif} */
+            body { color: white; font-family:Arial, Helvetica, sans-serif}
             .gameText { 
                 color: white; 
                 font-family:Arial, Helvetica, sans-serif;
@@ -24,6 +24,16 @@
             .big-message {
                 font-size: 24;
             }
+            .button {
+                color:white;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 15;
+                padding:4;
+                background-color: black;
+                border-style: solid;
+                border-color: white;  
+                vertical-align: bottom;              
+            }
         </style>
     </head>
     <body>
@@ -32,6 +42,9 @@
                 <canvas id="gamecanvas" width="480" height="320"></canvas>
             </div>
             <div class="gameText">
+                <div>
+                    <button id="btnStart" class="button">Start</button>
+                </div>
                 <div>
                     Score: <span id="score">0</span>
                 </div>
@@ -45,6 +58,7 @@
 
                 </div>
             </div>
+            
         </div>
         <script src="../dist/bundle.js"></script>
     </body>
