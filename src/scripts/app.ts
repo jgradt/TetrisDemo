@@ -12,6 +12,11 @@ export class App {
 
         console.log("app main");
         
+        let totalLines = 0,
+            score = 0,
+            level = 0,
+            speed = 1200;
+
         const config = {
             rowCount: 20,
             colCount: 12,
@@ -20,14 +25,43 @@ export class App {
         };
 
         // setup
-        const content = document.getElementById("content");
-        const gamecanvas: HTMLCanvasElement = document.getElementById("gamecanvas") as HTMLCanvasElement;
+         const gamecanvas: HTMLCanvasElement = document.getElementById("gamecanvas") as HTMLCanvasElement;
         gamecanvas.width = config.colCount * config.pieceSize;
         gamecanvas.height = config.rowCount * config.pieceSize;
         const renderContext: CanvasRenderingContext2D = gamecanvas.getContext("2d") as CanvasRenderingContext2D;
+        const el_score = document.getElementById("score");
+        const el_level = document.getElementById("level");
+        const el_lineCount = document.getElementById("lineCount");        
+        const el_message = document.getElementById("message");
+
+        function setMessage(msg: string) {
+            el_message.innerText = msg;
+        }
+
+        function linesCompleted(lineCount: number) : void {
+            let previousLevel = level;
+            totalLines += lineCount;
+            level = Math.floor(totalLines / 10) + 1;
+            score += 100 * [1,3,8,20][lineCount-1];
+
+            if(previousLevel != level && speed > 300) {
+                if(level <= 5) {
+                    speed -= 100;
+                } else if (level <= 10) {
+                    speed -= 50
+                } else {
+                    speed -= 30;
+                }
+            }
+            
+            el_lineCount.innerText = totalLines.toString();
+            el_level.innerText = level.toString();
+            el_score.innerText = score.toString();
+        }
 
         // initialize gameboard
         const gameboard = new Gameboard(renderContext, config.rowCount, config.colCount, config.pieceSize, config.padding);
+        gameboard.onLinesCompleted = linesCompleted;
         gameboard.render();
 
         // observe keypresses
@@ -35,7 +69,7 @@ export class App {
                     //.do((event: KeyboardEvent) => console.log("keydown", event.keyCode, event.key))       
                     .map(mapKeyBoardToAction)             
                     //.do(action => console.log("game action", action))
-                    .subscribe(new GameObserver(gameboard));
+                    .subscribe(new GameObserver(gameboard, setMessage));
 
     }
     
@@ -71,15 +105,31 @@ function mapKeyBoardToAction(event: KeyboardEvent) : GameAction {
 
 class GameObserver implements Observer<GameAction> {
     
-    constructor(private gameboard: Gameboard) {}
+    constructor(private gameboard: Gameboard, 
+                private setMessageCallback?: (msg: string) => void) {}
     
-    //closed?: boolean;
+    private isPaused: boolean = false;
     
     next(value: GameAction) : void {
+        
+        //TODO: need error logic
+
+        if(this.gameboard.isGameOver) return;
+
+        if(value === GameAction.Pause) {
+            this.isPaused = !this.isPaused;
+            if(this.setMessageCallback)
+                if(this.isPaused)
+                    this.setMessageCallback('Paused');
+                else    
+                    this.setMessageCallback('');
+        }
+
+        if(this.isPaused) return;
+
         switch(value) {
 
             case GameAction.Left:
-                //TODO: need error logic
                 this.gameboard.moveLeft();
                 this.gameboard.render();
                 break;
@@ -92,6 +142,9 @@ class GameObserver implements Observer<GameAction> {
             case GameAction.Down:
                 this.gameboard.moveDown();
                 this.gameboard.render();
+                if(this.gameboard.isGameOver && this.setMessageCallback) 
+                    this.setMessageCallback('Game Over');
+
                 break;
 
             case GameAction.Turn:
@@ -105,7 +158,9 @@ class GameObserver implements Observer<GameAction> {
         console.error(err);
     }
 
-    complete: () => void;
+    complete() { 
+        console.log('GameObserver complete');
+    };
     
 }
 

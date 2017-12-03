@@ -8,16 +8,16 @@ export interface IGameSquare {
 
 export class Gameboard {
 
-    completedLineCount: number = 0;
-    score: number = 0;
+    isGameOver: boolean = false;
+    onLinesCompleted: (lineCount:number) => void;
     private gameboard: IGameSquare[][] = [];
     private currentPiece: GamePiece;    
     private readonly rowCount: number;
     private readonly columnCount: number;
     private readonly pieceFactory: GamePieceFactory = new GamePieceFactory();
     private readonly config = {
-        originX: 5,
-        originY: 5,
+        originX: 6,
+        originY: 3,
         defaultStyle: 0
     };
 
@@ -42,7 +42,11 @@ export class Gameboard {
 
     private newPiece() : void {
         this.currentPiece = this.pieceFactory.getRandomPiece(this.config.originX, this.config.originY); 
-        this.applyGamePiece(this.currentPiece);
+        if(this.canApplyGamePiece(this.currentPiece)) {
+            this.applyGamePiece(this.currentPiece);
+        } else {
+            this.isGameOver = true;
+        }
     }
 
     private clearGamePiece(gamepiece: GamePiece) {
@@ -54,7 +58,6 @@ export class Gameboard {
     }
 
     private applyGamePiece(gamepiece: GamePiece) {
-        //console.log(`applying game piece : ${gamepiece.style}`);
         this.applyGamePieceCoordinates(gamepiece.getAbsoluteCoordinates(), gamepiece.style);
     }
 
@@ -72,13 +75,11 @@ export class Gameboard {
 
     private canApplyCoordinates(coordinates: ICoordinate[]) : boolean {
         let can = true;
-
         coordinates.forEach(c => {
             if(c.x < 0 || c.x > this.columnCount-1 || c.y > this.rowCount-1 || this.gameboard[c.x][c.y].locked) {
                 can = false;
             }
         });
-
         return can;
     }
 
@@ -92,8 +93,10 @@ export class Gameboard {
                     rowCompleted = false;                    
                 }
             }
-            if(rowCompleted) console.log(`row ${row} completed`);
-            if(rowCompleted) complete.push(row);
+            if(rowCompleted){
+                //console.log(`row ${row} completed`);
+                complete.push(row);
+            } 
         }
         return complete;
     }
@@ -114,19 +117,15 @@ export class Gameboard {
             }
         })
 
-        this.updateScore(completedLines.length);
-    }
-
-    private updateScore(lineCount: number) {
-        //TODO
-        this.completedLineCount += lineCount;
+        if(completedLines.length > 0 && this.onLinesCompleted) {
+            this.onLinesCompleted(completedLines.length);
+        }
     }
 
     private tryApplyNewPiece(newPiece: GamePiece): boolean {
         if (this.canApplyGamePiece(newPiece)) {
             this.clearGamePiece(this.currentPiece);
             this.applyGamePiece(newPiece);
-            //this.removeCompletedLines();
             this.currentPiece = newPiece;
             return true;
         }
