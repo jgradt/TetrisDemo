@@ -13,53 +13,77 @@
             .gameText { 
                 color: white; 
                 font-family:Arial, Helvetica, sans-serif;
-                }
-            .flex-container {
-                display: flex;
-                background-color: black;
+                padding: 5px;
             }
-            .flex-container>div {
-                margin: 10px;
-            }
-            .big-message {
+           .big-message {
                 font-size: 24;
             }
             .button {
                 color:white;
                 font-family: Arial, Helvetica, sans-serif;
                 font-size: 15;
-                padding:4;
+                padding:5px;
                 background-color: black;
                 border-style: solid;
                 border-color: white;  
                 vertical-align: bottom;              
             }
+            .right-grid-container {
+                display: grid;
+                height: 400px;
+                align-content: start;
+                grid-template-columns: 250px;
+                grid-template-rows: 340px auto;
+                grid-gap: 10px;
+                padding: 10px;
+            }
+            .right-grid-container > div {
+                background-color: black;
+                text-align: center;
+                padding: 20px 0;                
+            }
+            .footer-text {
+                font-size: 12;
+            }
+            
         </style>
     </head>
     <body>
-        <div class="flex-container">
-            <div>
-                <canvas id="gamecanvas" width="480" height="320"></canvas>
-            </div>
-            <div class="gameText">
-                <div>
-                    <button id="btnStart" class="button">Start</button>
-                </div>
-                <div>
-                    Score: <span id="score">0</span>
-                </div>
-                <div>
-                    Level: <span id="level">0</span>
-                </div>
-                <div>
-                    Lines: <span id="lineCount">0</span>
-                </div>
-                <div id="message" class="big-message">
-
-                </div>
-            </div>
-            
-        </div>
+        <table style="background-color: black">
+            <tr>
+                <td>
+                    <canvas id="gamecanvas" width="480" height="320"></canvas>
+                </td>
+                <td>
+                    <div class="right-grid-container">
+                        <div>
+                            <table>
+                                <tr>
+                                    <td class="gameText"><button id="btnStart" class="button">Start</button></td>
+                                </tr>
+                                <tr>
+                                    <td class="gameText">Score: <span id="score">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="gameText">Level: <span id="level">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="gameText">Lines: <span id="lineCount">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="gameText">
+                                        <div id="message" class="big-message"></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="footer-text">
+                            Tetris demo in TypeScript
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
         <script src="../dist/bundle.js"></script>
     </body>
 </html>
