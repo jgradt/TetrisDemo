@@ -33,6 +33,8 @@ export class Square {
                 return 'red';
             case 3:
                 return 'yellow';
+            case 4:
+                return 'green';
             default:
                 return 'black';
         }

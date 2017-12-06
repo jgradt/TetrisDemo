@@ -59,7 +59,7 @@ export class GamePieceFactory {
 
     getRandomPiece(originX: number, originY: number) : GamePiece {
         let id = Math.floor(Math.random() * 7) + 1; 
-        let style = Math.floor(Math.random() * 3) + 1;
+        let style = Math.floor(Math.random() * 4) + 1;
         return this.getPiece(id, originX, originY, style);
     }
 
