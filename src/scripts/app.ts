@@ -2,11 +2,10 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
-import { Observer } from 'rxjs/Observer';
 import { BehaviorSubject } from 'rxjs'
+import { Subscription } from 'rxjs/Subscription';
 
 import { Gameboard } from './gameboard';
-import { Subscription } from 'rxjs/Subscription';
 
 export class App {
 
@@ -14,151 +13,154 @@ export class App {
 
         console.log("app main");
         
-        let totalLines = 0,
-            score = 0,
-            level = 0,
-            speed = 2000;
+        let game = new Game();
+        game.init();
 
-        const config = {
-            rowCount: 20,
-            colCount: 12,
-            pieceSize: 20,
-            padding: 1
-        };
+    }
+    
+}
 
-        // setup
-         const gamecanvas: HTMLCanvasElement = document.getElementById("gamecanvas") as HTMLCanvasElement;
-        gamecanvas.width = config.colCount * config.pieceSize;
-        gamecanvas.height = config.rowCount * config.pieceSize;
-        const renderContext: CanvasRenderingContext2D = gamecanvas.getContext("2d") as CanvasRenderingContext2D;
-        const el_score = document.getElementById("score");
-        const el_level = document.getElementById("level");
-        const el_lineCount = document.getElementById("lineCount");        
-        const el_message = document.getElementById("message");
-        const el_startButton = document.getElementById("btnStart") as HTMLButtonElement;
-        el_startButton.onclick = startGame;
+class Game {
 
-        function setMessage(msg: string) {
-            el_message.innerText = msg;
-        }
+    gameboard: Gameboard;
+    totalLines = 0;
+    score = 0;
+    level = 0;
+    speed = 2000;
+    rowCount = 20;
+    colCount = 12;
+    pieceSize = 20;
+    padding = 1;
+    isPaused: boolean = false;
 
-        function linesCompleted(lineCount: number) : void {
-            let previousLevel = level;
-            totalLines += lineCount;
-            level = Math.floor(totalLines / 10) + 1;
-            let scoreIncrement = 100 * [1,3,8,20][lineCount-1] * (Math.pow(1.1, level-1));
-            scoreIncrement = Math.round(scoreIncrement/10) * 10;
-            score += scoreIncrement;
+    // html elements
+    gamecanvas: HTMLCanvasElement = document.getElementById("gamecanvas") as HTMLCanvasElement;
+    el_score = document.getElementById("score");
+    el_level = document.getElementById("level");
+    el_lineCount = document.getElementById("lineCount");        
+    el_message = document.getElementById("message");
+    el_startButton = document.getElementById("btnStart") as HTMLButtonElement;
+ 
+    // observables
+    subscription: Subscription;
+    tickSubcription: Subscription;
+    subject$: BehaviorSubject<number>;
+    tick$: Observable<GameAction>;
 
-            if(previousLevel != level && speed > 300) {
-                if(level <= 5) {
-                    speed -= 100;
-                } else if (level <= 10) {
-                    speed -= 50
-                } else {
-                    speed -= 30;
-                }
-            }
-            
-            el_lineCount.innerText = totalLines.toString();
-            el_level.innerText = level.toString();
-            el_score.innerText = score.toString();
-        }
+    init() {
 
-        // initialize gameboard
-        const gameboard = new Gameboard(renderContext, config.rowCount, config.colCount, config.pieceSize, config.padding);
-        gameboard.onLinesCompleted = linesCompleted;
-        gameboard.render();
+        this.gamecanvas.width = this.colCount * this.pieceSize;
+        this.gamecanvas.height = this.rowCount * this.pieceSize;
 
-        // observe events
+        let renderContext = this.gamecanvas.getContext("2d") as CanvasRenderingContext2D;
+        this.gameboard = new Gameboard(renderContext, this.rowCount, this.colCount, this.pieceSize, this.padding);
+        this.gameboard.onLinesCompleted = (lineCount) => this.linesCompleted(lineCount);
+        this.gameboard.render();
+
+        this.el_startButton.onclick = () => this.startGame();
+
+        // observe keyboard events
         let keySource$ = Observable.fromEvent(document, 'keydown')
                     //.do((event: KeyboardEvent) => console.log("keydown", event.keyCode, event.key))       
-                    .map(mapKeyBoardToAction);            
+                    .map(this.mapKeyBoardToAction);            
                     //.do(action => console.log("game action", action))
-                    //.subscribe(new GameObserver(gameboard, setMessage));
+ 
+        this.subject$ = new BehaviorSubject(0);
+        keySource$.subscribe(this.subject$);
+    }
 
-        const subject$ = new BehaviorSubject(0);
-        let subKeySource = keySource$.subscribe(subject$);
-        let subscription : Subscription; 
-        let timer: number;
+    private linesCompleted(lineCount: number) : void {
+        let previousLevel = this.level;
+        this.totalLines += lineCount;
+        this.level = Math.floor(this.totalLines / 5) + 1;
+        let scoreIncrement = 100 * [1,3,8,20][lineCount-1] * (Math.pow(1.1, this.level-1));
+        scoreIncrement = Math.round(scoreIncrement/10) * 10;
+        this.score += scoreIncrement;
 
-        function startTimer() {
-            if(gameboard.isGameOver) {
-                quitGame();
-                return;
+        if(previousLevel != this.level) {
+
+            if(this.speed > 300) {
+                if(this.level <= 5) {
+                    this.speed -= 100;
+                } else if (this.level <= 10) {
+                    this.speed -= 50
+                } else {
+                    this.speed -= 30;
+                }
             }
-            subject$.next(GameAction.Tick);
-            timer = setTimeout(startTimer, speed);
+
+            this.startTimer();
         }
         
-        function stopTimer() {
-            clearTimeout(timer);
-        }
+        this.el_lineCount.innerText = this.totalLines.toString();
+        this.el_level.innerText = this.level.toString();
+        this.el_score.innerText = this.score.toString();
+    }
 
-        function startGame() {
-            gameboard.newGame();
-            setMessage('');
-            subscription = subject$.subscribe(new GameObserver(gameboard, setMessage));
-            startTimer();
-        }
 
-        function quitGame() {
-            stopTimer();
-            subscription.unsubscribe();
-        }
+    private startGame() {
+        this.gameboard.newGame();
+        this.setMessage('');
+        this.subscription = this.subject$.subscribe(val => this.nextGameAction(val), 
+                                                    err => console.log(err), 
+                                                    () => console.log('observer complete'));
+        this.startTimer();
+    }
+
+    private endGame() {
+        this.stopTimer();
+        this.subscription.unsubscribe();
+        this.setMessage('Game Over');
     }
     
-}
-
-enum GameAction {
-    Unknown,
-    Turn,
-    Down,
-    Right,
-    Left,
-    Pause,
-    Tick
-}
-
-function mapKeyBoardToAction(event: KeyboardEvent) : GameAction {
-    switch(event.keyCode) {
-        case 37:
-            return GameAction.Left;
-        case 32:
-        case 38:
-            return GameAction.Turn;
-        case 39:
-            return GameAction.Right;
-        case 40:
-            return GameAction.Down;
-        case 80:
-            return GameAction.Pause;
-        default:
-            //return Observable.of(GameAction.Down); 
-            return GameAction.Unknown;
+    private setMessage(msg: string) {
+        this.el_message.innerText = msg;
     }
-}
 
-class GameObserver implements Observer<GameAction> {
-    
-    constructor(private gameboard: Gameboard, 
-                private setMessageCallback?: (msg: string) => void) {}
-    
-    private isPaused: boolean = false;
-    
-    next(value: GameAction) : void {
+    private startTimer() {
+        //console.log(`start timer with speed ${this.speed}`);
+        if(this.tickSubcription)
+            this.tickSubcription.unsubscribe();
+        this.tick$ = Observable.interval(this.speed).mapTo(GameAction.Tick);
+        this.tickSubcription = this.tick$.subscribe(this.subject$);
+    }
+
+    private stopTimer() {
+        this.tickSubcription.unsubscribe();
+    }
+
+    private mapKeyBoardToAction(event: KeyboardEvent) : GameAction {
+        switch(event.keyCode) {
+            case 37:
+                return GameAction.Left;
+            case 32:
+            case 38:
+                return GameAction.Turn;
+            case 39:
+                return GameAction.Right;
+            case 40:
+                return GameAction.Down;
+            case 80:
+                return GameAction.Pause;
+            default:
+                return GameAction.None;
+        }
+    }
+  
+    private nextGameAction(value: GameAction) : void {
         
         //TODO: need error logic
-
+        
+        //console.log(`observed GameAction: ${value}`)
+        
         if(this.gameboard.isGameOver) return;
 
         if(value === GameAction.Pause) {
             this.isPaused = !this.isPaused;
-            if(this.setMessageCallback)
-                if(this.isPaused)
-                    this.setMessageCallback('Paused');
-                else    
-                    this.setMessageCallback('');
+            if(this.isPaused)
+                this.setMessage('Paused');
+            else    
+                this.setMessage('');
         }
 
         if(this.isPaused) return;
@@ -179,8 +181,8 @@ class GameObserver implements Observer<GameAction> {
             case GameAction.Down:
                 this.gameboard.moveDown();
                 this.gameboard.render();
-                if(this.gameboard.isGameOver && this.setMessageCallback) 
-                    this.setMessageCallback('Game Over');
+                if(this.gameboard.isGameOver) 
+                    this.endGame();
 
                 break;
 
@@ -191,14 +193,16 @@ class GameObserver implements Observer<GameAction> {
         }
     }
 
-    error(err: any) : void {
-        console.error(err);
-    }
+}
 
-    complete() { 
-        console.log('GameObserver complete');
-    };
-    
+enum GameAction {
+    None,
+    Turn,
+    Down,
+    Right,
+    Left,
+    Pause,
+    Tick
 }
 
 console.log('app module loaded');
