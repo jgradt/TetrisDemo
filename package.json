@@ -15,7 +15,8 @@
     "awesome-typescript-loader": "^3.4.0",
     "gulp": "^3.9.1",
     "gulp-util": "^3.0.8",
-    "webpack": "^3.8.1",
-    "webpack-dev-server": "^2.9.4"
+    "typescript": "^2.6.2",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.9.7"
   }
 }
